@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal, Button, Table, Form, Row, Col } from "react-bootstrap";
 import "../App.css";
 import AppContext from "../context/AppContext";
@@ -10,10 +10,24 @@ const CallsTable = ({ calls }) => {
     fetchCalls,
     accessToken,
     addNote,
+    toggleArchiveStatus,
   } = useContext(AppContext);
   const [showModal, setShowModal] = useState(false);
   const [noteContent, setNoteContent] = useState("");
 
+  const groupCallsByDate = (calls) => {
+    return calls.reduce((acc, call) => {
+      const date = new Date(call.created_at).toLocaleDateString();
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(call);
+      return acc;
+    }, {});
+  };
+
+  // In your render method, use this function
+  const groupedCalls = groupCallsByDate(calls);
   const handleRowClick = async (callId) => {
     await fetchCallDetails(
       callId,
@@ -24,17 +38,16 @@ const CallsTable = ({ calls }) => {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setNoteContent(""); // Clear the note content when closing the modal
+    setNoteContent("");
+    // Clear the note content when closing the modal
   };
 
   const handleSaveNote = async () => {
-    if (noteContent.trim()) {
-      // Assuming `addNote` is a method in your context to add a note to a call
-      await addNote(specificCallData?.id, noteContent);
-      setNoteContent("");
-      handleCloseModal();
-      await fetchCalls(); // Refresh calls to show any updates
-    }
+    // Assuming `addNote` is a method in your context to add a note to a call
+    await addNote(specificCallData?.id, noteContent);
+    setNoteContent("");
+    handleCloseModal();
+    await fetchCalls(accessToken || localStorage.getItem("access-token")); // Refresh calls to show any updates
   };
 
   // Utility to convert strings to Title Case
@@ -45,25 +58,29 @@ const CallsTable = ({ calls }) => {
     });
   }
 
+  const sortedCalls = calls.sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  );
+
   return (
     <div className="table-container">
       <Table hover className="full-height-table" responsive>
-        <thead style={{ backgroundColor: "#F4F4F9" }}>
+        <thead>
           <tr>
-            <th>Call Type</th>
-            <th>Direction</th>
-            <th>Duration</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Via</th>
-            <th>Created At</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>CALL TYPE</th>
+            <th>DIRECTION</th>
+            <th>DURATION</th>
+            <th>FROM</th>
+            <th>TO</th>
+            <th>VIA</th>
+            <th>CREATED AT</th>
+            <th>STATUS</th>
+            <th>ACTIONS</th>
           </tr>
         </thead>
         <tbody>
-          {calls.map((call) => (
-            <tr key={call.id} onClick={() => handleRowClick(call.id)}>
+          {sortedCalls.map((call) => (
+            <tr key={call.id}>
               <td
                 className={`text-primary ${
                   call.call_type === "answered" ? "text-info" : ""
@@ -75,8 +92,15 @@ const CallsTable = ({ calls }) => {
               </td>
               <td className="text-primary">{toTitleCase(call.direction)}</td>
               <td>
-                {Math.floor(call.duration / 60)} minutes {call.duration % 60}{" "}
-                seconds
+                <div>
+                  <div>
+                    {" "}
+                    {Math.floor(call.duration / 60)} minutes{" "}
+                    {call.duration % 60} seconds
+                  </div>
+
+                  <div className="text-primary">({call.duration} seconds)</div>
+                </div>
               </td>
               <td>{call.from}</td>
               <td>{call.to}</td>
@@ -91,6 +115,9 @@ const CallsTable = ({ calls }) => {
                       border: "none",
                     }}
                     size="sm"
+                    onClick={() =>
+                      toggleArchiveStatus(call.id, call.is_archived)
+                    }
                   >
                     Unarchive
                   </Button>
@@ -102,6 +129,9 @@ const CallsTable = ({ calls }) => {
                       backgroundColor: "#EDFBFA",
                       border: "none",
                     }}
+                    onClick={() =>
+                      toggleArchiveStatus(call.id, call.is_archived)
+                    }
                   >
                     Archived
                   </Button>
@@ -215,6 +245,20 @@ const CallsTable = ({ calls }) => {
             <Row className="mb-3">
               <Col sm={3}>
                 <Form.Label>Notes:</Form.Label>
+              </Col>
+              <Col sm={9}>
+                <Form.Control
+                  className="no-border"
+                  type="text"
+                  readOnly
+                  value={
+                    specificCallData?.notes.length > 0
+                      ? specificCallData?.notes.reduce(
+                          (acc, elem) => acc + elem.content
+                        )
+                      : ""
+                  }
+                />
               </Col>
             </Row>
             <Row>

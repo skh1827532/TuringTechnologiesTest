@@ -1,10 +1,37 @@
 import React, { useState, useCallback } from "react";
 import AppContext from "./AppContext";
+import Pusher from "pusher-js";
 
 const AppProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState("");
-  const [data, setData] = useState([]);
-  const [specificCallData, setSpecificCallData] = useState(null); // State to store details of a specific call
+  const [data, setData] = useState({
+    nodes: [],
+  });
+  const [specificCallData, setSpecificCallData] = useState(null);
+
+  const pusher = new Pusher("d44e3d910d38a928e0be", {
+    cluster: "eu",
+
+    authEndpoint: "https://frontend-test-api.aircall.dev/pusher/auth",
+
+    auth: {
+      headers: {
+        Authorization: `Bearer ${
+          accessToken || localStorage.getItem("access-token")
+        }`,
+      },
+    },
+  });
+
+  const channel = pusher.subscribe("private-aircall");
+  channel.bind("update-call", function (updatedCall) {
+    setData((prev) => ({
+      ...prev,
+      nodes: prev.nodes.map((call) =>
+        call.id === updatedCall.id ? updatedCall : call
+      ),
+    }));
+  });
 
   async function login(username, password, callback) {
     try {
@@ -47,7 +74,9 @@ const AppProvider = ({ children }) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${
+              accessToken || localStorage.getItem("auth-token")
+            }`,
           },
         }
       );
@@ -97,7 +126,40 @@ const AppProvider = ({ children }) => {
     }
   }
 
-  // Function to fetch details of a specific call
+  const toggleArchiveStatus = async (callId, isArchived) => {
+    try {
+      const response = await fetch(
+        `https://frontend-test-api.aircall.dev/calls/${callId}/archive`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${
+              accessToken || localStorage.getItem("access-token")
+            }`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to update archive status: ${response.statusText}`
+        );
+      }
+
+      const updatedCall = await response.json();
+      console.log("New Archived", updatedCall);
+      setData((prev) => ({
+        ...prev,
+        nodes: prev.nodes.map((call) =>
+          call.id === callId ? updatedCall : call
+        ),
+      }));
+    } catch (error) {
+      console.error("Error during toggle archive status:", error.message);
+    }
+  };
+
   const fetchCallDetails = async (callId, givenAuth) => {
     try {
       const response = await fetch(
@@ -105,7 +167,9 @@ const AppProvider = ({ children }) => {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${givenAuth}`,
+            Authorization: `Bearer ${
+              givenAuth || localStorage.getItem("access-token")
+            } `,
           },
         }
       );
@@ -117,7 +181,6 @@ const AppProvider = ({ children }) => {
       }
 
       const callDetails = await response.json();
-      console.log(callDetails);
       setSpecificCallData(callDetails);
     } catch (error) {
       console.error("Error fetching specific call details:", error.message);
@@ -125,6 +188,41 @@ const AppProvider = ({ children }) => {
     }
   };
 
+  const addNote = async (callId, content) => {
+    try {
+      const response = await fetch(
+        `https://frontend-test-api.aircall.dev/calls/${callId}/note`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${
+              accessToken || localStorage.getItem("access-token")
+            }`,
+          },
+          body: JSON.stringify({ content }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to add note: ${response.statusText}`);
+      }
+
+      const updatedCall = await response.json();
+      // Update the specific call data to reflect the new note
+      setSpecificCallData((prev) => ({
+        ...prev,
+        notes: [updatedCall],
+      }));
+      // Optionally, refresh call list or specific call details
+      fetchCallDetails(
+        callId,
+        accessToken || localStorage.getItem("access-token")
+      );
+    } catch (error) {
+      console.error("Error adding note:", error.message);
+    }
+  };
   return (
     <AppContext.Provider
       value={{
@@ -135,8 +233,10 @@ const AppProvider = ({ children }) => {
         fetchCalls,
         fetchCallDetails,
         specificCallData,
+        addNote,
         setSpecificCallData,
         scheduleTokenRefresh,
+        toggleArchiveStatus,
       }}
     >
       {children}

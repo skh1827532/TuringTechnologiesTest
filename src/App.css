@@ -23,6 +23,7 @@ body,
 .full-height-table {
   height: 100%; /* Full height table */
   border: 1px solid #dee2e6;
+  border-radius: 5px;
 }
 
 .header-background {
@@ -118,4 +119,17 @@ body,
 
 .my-modal .modal-header .close {
   color: #007bff; /* Example using a custom class for specific targeting */
+}
+
+.table-container .full-height-table thead th {
+  background-color: #f4f4f9; /* Set the desired green color here */
+  color: black; /* Optional: Set text color to white for contrast */
+}
+
+.table-container .full-height-table {
+  border-radius: 12px; /* Apply rounded corners to the table */
+}
+
+.no-border-button {
+  border: none;
 }

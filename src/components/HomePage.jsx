@@ -96,12 +96,13 @@ const HomePage = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          width: "100vw",
+          width: "95vw",
           paddingRight: "2rem",
           paddingLeft: "2rem",
+          marginTop: "1rem",
           paddingTop: "1rem",
           paddingBottom: "1rem",
-          borderBottom: "2px solid #dee2e6",
+          border: "1px solid #dee2e6",
         }}
       >
         <div>
@@ -188,8 +189,9 @@ const CenteredPagination = ({ totalPages, currentPage, onPageChange }) => {
   );
 
   const buttonStyle = {
-    border: "none",
     backgroundColor: "transparent",
+    margin: "10px",
+    border: "none !important",
   };
 
   return (
@@ -198,6 +200,7 @@ const CenteredPagination = ({ totalPages, currentPage, onPageChange }) => {
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         style={buttonStyle}
+        className="no-border-button"
       />
       {pages.map((page) => (
         <Pagination.Item
