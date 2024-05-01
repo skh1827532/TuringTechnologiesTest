@@ -43,6 +43,7 @@ body,
 .custom-dropdown .dropdown-menu {
   background-color: white; /* Sets dropdown background to white */
   border: none;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
 }
 
 .custom-dropdown .dropdown-item {
@@ -54,4 +55,67 @@ body,
 .custom-dropdown .dropdown-item:focus {
   background-color: #e9ecef; /* Light grey background on hover/focus */
   color: #007bff; /* Keeps text color primary */
+}
+
+.borderless-input {
+  border: none !important;
+  background-color: transparent !important;
+  pointer-events: none;
+  color: #495057; /* This is to maintain the default text color */
+}
+
+.no-border {
+  border: none !important; /* Use !important to ensure override */
+  background-color: transparent; /* Optional: to make background transparent */
+}
+
+/* App.css */
+.modal-header-custom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem; /* Reduces padding inside the header */
+}
+
+.modal-header-custom .modal-title {
+  flex-grow: 1;
+  margin-right: 2rem; /* Ensures some space between title and form */
+}
+
+.no-border {
+  border: none;
+  box-shadow: none; /* Removes box shadow if any */
+  background-color: transparent; /* Makes the background transparent */
+  max-height: 30px; /* Keeps the input small and tidy */
+}
+
+/* App.css */
+.modal-header-custom .form-row {
+  align-items: center; /* Aligns items vertically centered */
+}
+
+.no-border {
+  border: none;
+  background-color: transparent;
+  box-shadow: none;
+  margin-bottom: 0; /* Removes margin to fit better in the header */
+}
+
+.form-label-custom {
+  margin-bottom: 0; /* Removes bottom margin for labels */
+  white-space: nowrap; /* Prevents label from wrapping */
+}
+
+.modal-header .close {
+  color: #007bff; /* Bootstrap "info" blue, change as needed */
+  opacity: 1; /* Ensures visibility if using lighter colors */
+}
+
+/* For hover effects, if desired */
+.modal-header .close:hover {
+  color: #0056b3; /* Darker blue on hover, adjust as needed */
+}
+
+.my-modal .modal-header .close {
+  color: #007bff; /* Example using a custom class for specific targeting */
 }

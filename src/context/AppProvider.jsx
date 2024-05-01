@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from "react";
-
 import AppContext from "./AppContext";
 
 const AppProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState("");
-
   const [data, setData] = useState([]);
+  const [specificCallData, setSpecificCallData] = useState(null); // State to store details of a specific call
+
   async function login(username, password, callback) {
     try {
       const response = await fetch(
@@ -31,7 +31,6 @@ const AppProvider = ({ children }) => {
       const data = await response.json();
       setAccessToken(data.access_token);
       localStorage.setItem("access-token", data.access_token);
-
       scheduleTokenRefresh();
       callback();
     } catch (error) {
@@ -69,7 +68,7 @@ const AppProvider = ({ children }) => {
   }, [accessToken]);
 
   const scheduleTokenRefresh = () => {
-    setTimeout(refreshToken, 540000);
+    setTimeout(refreshToken, 540000); // Refresh the token every 9 minutes (540000 ms)
   };
 
   async function fetchCalls(myAccessToken, offset = 0, limit = 10) {
@@ -98,6 +97,34 @@ const AppProvider = ({ children }) => {
     }
   }
 
+  // Function to fetch details of a specific call
+  const fetchCallDetails = async (callId, givenAuth) => {
+    try {
+      const response = await fetch(
+        `https://frontend-test-api.aircall.dev/calls/${callId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${givenAuth}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch call details with status ${response.status}: ${response.statusText}`
+        );
+      }
+
+      const callDetails = await response.json();
+      console.log(callDetails);
+      setSpecificCallData(callDetails);
+    } catch (error) {
+      console.error("Error fetching specific call details:", error.message);
+      throw error;
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -106,6 +133,9 @@ const AppProvider = ({ children }) => {
         data,
         setData,
         fetchCalls,
+        fetchCallDetails,
+        specificCallData,
+        setSpecificCallData,
         scheduleTokenRefresh,
       }}
     >
