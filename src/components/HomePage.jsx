@@ -20,11 +20,6 @@ const HomePage = () => {
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
   useEffect(() => {}, [filter]);
 
   const getFilteredData = (filter, givenData) => {
@@ -91,34 +86,6 @@ const HomePage = () => {
         alignItems: "center",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "95vw",
-          paddingRight: "2rem",
-          paddingLeft: "2rem",
-          marginTop: "1rem",
-          paddingTop: "1rem",
-          paddingBottom: "1rem",
-          border: "1px solid #dee2e6",
-        }}
-      >
-        <div>
-          <img src={TTLogo} style={{ width: "300px" }} alt="image Not Found" />
-        </div>
-        <div>
-          <Button
-            variant="primary"
-            style={{ width: "10vw" }}
-            onClick={handleLogout}
-          >
-            Log out
-          </Button>
-        </div>
-      </div>
-
       <div style={{ width: "90vw", marginTop: "30px" }}>
         <h2>Turing Technologies Frontend Test</h2>
         <div

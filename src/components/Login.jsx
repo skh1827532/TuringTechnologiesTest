@@ -27,8 +27,9 @@ const Login = () => {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "#F4EEED",
-        height: "100vh",
-        width: "100vw", // Ensures the div takes full viewport width
+        height: "90vh",
+
+        width: "100vw",
       }}
     >
       <Container
